@@ -1,59 +1,34 @@
 import timeit, time, os
 from mpi4py import MPI
+from sequential import sequential
+import numpy
+import random
 
-def step_one(a, b, size):
-    for i in range(1, size):
-        a[i] = a[i][i:] + a[i][:i]
+# a = [[15, -11, -12, 12], [-15, -2, 15, -15], [12, 14, -12, -6], [-1, -8, 16, -13]]
+# b = [[0, 15, 14, 9], [-3, -7, -12, -4], [10, 10, -16, 15], [-13, -3, 9, 3]]
+# a = [[49, 10, 40, -58, -21, -36, 50, 9],
+#      [-5, -59, -18, -13, 27, 58, -56, 59],
+#      [-23, -34, 33, 5, -6, -20, -11, -42],
+#      [57, 21, -49, -8, -10, 42, -55, -26],
+#      [-3, 52, 53, -48, -6, 4, 3, -30],
+#      [23, 60, 15, -39, 40, -9, -1, -7],
+#      [48, 39, 42, -51, -32, -57, 16, -52],
+#      [-35, -52, 1, -8, -28, -51, -56, -36]]
 
-        column = [row[i] for row in b]
-        shifted = column[i:] + column[:i]
-        for j in range(0, size):
-            b[j][i] = shifted[j]
-    return a, b
-
-
-def multiply(a, b, size):
-    c = [[0 for row in range(size)] for row in range(size)]
-    for i in range(0, size):
-        for j in range(0, size):
-            c[i][j] = a[i][j] * b[i][j]
-    return c
-
-
-def add(a, b, size):
-    c = [[0 for row in range(size)] for row in range(size)]
-    for i in range(0, size):
-        for j in range(0, size):
-            c[i][j] = a[i][j] + b[i][j]
-    return c
-
-
-def sequential(size):
-    start_time = time.time()
-    c = [[0 for row in range(size)] for row in range(size)]
-    mtx1 = [[15, -11, -12, 12], [-15, -2, 15, -15], [12, 14, -12, -6], [-1, -8, 16, -13]]
-    mtx2 = [[0, 15, 14, 9], [-3, -7, -12, -4], [10, 10, -16, 15], [-13, -3, 9, 3]]
-    a, b = step_one(mtx1, mtx2, size)
-    c = multiply(a, b, size)
-
-    # other steps (transformations)
-    for i in range(1, size):
-        for i in range(0, size):
-            a[i] = a[i][1:] + a[i][:1]
-        b = b[1:] + b[:1]
-        cn = multiply(a, b, size)
-        c = add(c, cn, size)
-
-    end_time = time.time()
-    time1 = end_time - start_time
-
-    for row in c:
-        print(row)
-
-    print('Process finished in: ', time1)
-
+# b = [[-43, 64, -36, -6, 3, -8, 10, -52],
+#      [-48, -2, 62, 63, 29, 44, 20, -47],
+#      [29, -34, -31, -50, 17, -51, 1, 15],
+#      [41, -40, -47, 24, -9, 59, -24, 64],
+#      [18, 54, 51, -4, 36, -31, -1, 35],
+#      [4, 28, -40, -50, -34, -11, 37, -7],
+#      [57, -40, -55, 23, -45, 27, 9, -36],
+#      [54, -1, 16, -11, -12, 4, 25, -30]]
+n = 400
+a = [[random.randint(-(n ** 2), n ** 2) for _ in range(n)] for _ in range(n)]
+b = [[random.randint(-(n ** 2), n ** 2) for _ in range(n)] for _ in range(n)]
 
 if __name__ == '__main__':
-    # sequential(4)
-    p = 5
-    os.system("mpiexec -n {0} python -m mpi4py parallel.py".format(p))
+
+    #sequential(a, b, n)
+
+    os.system("mpiexec -n {0} python -m mpi4py parallel.py".format(5))
