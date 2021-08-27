@@ -74,51 +74,50 @@ if __name__ == '__main__':
         start_time = time.time()
         a, b = step_one(a, b, n) #zapucana dimenzija i ovde
         for i in range(n): #postaviti da bude n a ne ovo
-            a_block, b_block = [], []
+            a_block, b_block, data = [], [], []
             for j in range(dim1, dim2):
                 a_block.append(a[j][step:step + block_dim])
                 b_block.append(b[j][step:step + block_dim])
-            print(a_block)
-            c_block = [[ 0 for i in range(block_dim) ] for j in range(block_dim)]
-            data = [a_block, b_block, c_block]
-            comm.send(data, dest=i+1, tag=1)
+            if len(a_block[block_dim-1]) == block_dim:
+                c_block = [[0 for i in range(block_dim)] for j in range(block_dim)]
+                data = [a_block, b_block, c_block]
+                dest += 1
+                if (dest == p):
+                    dest = 1
+                comm.send(data, dest=dest, tag=1)
             step = step + block_dim
             if (i + 1) % block_dim == 0:
                 step = 0
                 dim1 += block_dim
                 dim2 += block_dim
 
-        #primam c blokove i sklapam resenje
         c_blocks = []
-        for i in range(p): #srediti n
-            dest = i+1
-            mtx = comm.recv(source=dest, tag=dest)
+        d = 0
+        for i in range(p-1):  # srediti n
+            d = i + 1
+            mtx = comm.recv(source=d, tag=d)
             c_blocks.append(mtx)
 
+        range_per_row = int((p-1)/2)
         s1 = 0
-        s2 = block_dim
-        rows={}
-        for l in range(block_dim):
+        s2 = range_per_row
+        rows = {}
+        # print(c_blocks)
+        for l in range(range_per_row):
             rows[l] = []
             lista = []
             for nigga in range(s1, s2):
                 rows[l].append(c_blocks[nigga])
-            s1 += block_dim
-            s2 += block_dim
+
+            # print(rows[l])
+            s1 += range_per_row
+            s2 += range_per_row
         end_time = time.time()
         print(np.bmat([rows[i] for i in rows.keys()]))
-        print("Process finished in ", end_time-start_time)
-            #hocu da uzmem 0 iz svakog ranka i da stavljam u jedan red
-
-            #treba nekako da sacuvam to sto mi stigne da bih posle sabirala sa ostatkom!
-            #dobijam svaki deo svake c matrice i ne znam kako da sabiram adekvatne delove?
-            # print("C BLOK", mtx)
-
+        print("Process finished in ", end_time - start_time)
     else:
-        print(rank)
         #treba else pa svi ostali koraci ovde
         data = comm.recv(source=0, tag=1)
-        # print(data, " Data ")
         result = []
         #mnozenje i sabiranje
         for t in range(n):
@@ -129,8 +128,9 @@ if __name__ == '__main__':
             left_shift_dest = rank-1+p_sqrt if (rank-1) % p_sqrt == 0 else rank - 1
             left_shift_source = rank + 1 - p_sqrt if rank % p_sqrt == 0 else rank + 1
 
-            up_shift_dest = rank - p_sqrt if rank - p_sqrt > 0 else rank + block_dim*(block_dim-1)
-            up_shift_source = rank - block_dim*(block_dim-1) if (rank+p_sqrt) > p_sqrt_2 else rank + p_sqrt
+            up_shift_dest = rank - p_sqrt if rank - p_sqrt > 0 else p_sqrt_2 + rank - p_sqrt
+            up_shift_source = rank + p_sqrt if (rank + p_sqrt) <= p_sqrt_2 else rank + p_sqrt - p_sqrt_2
+
 
             #left_shift
             comm.send([i[0] for i in data[0]], dest=left_shift_dest, tag=left_shift_dest)
