@@ -7,11 +7,15 @@ Inicijalni korak se razlikuje od ostalih po načinu šiftovanja, u inicijalnom o
 
 ## Sekvencijalna verzija
 
-Sekvencijalna verzija algoritma izvršava iterativno svaki od koraka algoritma.
+Sekvencijalna verzija algoritma izvršava iterativno svaki od koraka algoritma, implementacija u _Python_ i _Go_ jezicima.
 
 ## Paralelna verzija
  
-Paralelna verzija realizovana je upotrebom _MPI for Python_ paketa. Izvršavanje algoritma podeljeno je na p + 1 procesa. Svaki proces šiftuje i množi blokove matrica A i B, veličine n/sqrt(p) i kao rezultat daje maticu C. Rezultat algoritma dobija se na sličan način, svaka podmatrica C koja je rezultat množenja bloka sabira se sa odgovarajućim blokovima iz ostalih procesa, na kraju se C blokovi sklope u jednu rezultujuću matricu.
+Paralelna verzija u _Python-u_ realizovana je upotrebom _MPI for Python_ paketa. Izvršavanje algoritma podeljeno je na p + 1 procesa. Svaki proces šiftuje i množi blokove matrica A i B, veličine n/sqrt(p) i kao rezultat daje maticu C. Rezultat algoritma dobija se na sličan način, svaka podmatrica C koja je rezultat množenja bloka sabira se sa odgovarajućim blokovima iz ostalih procesa, na kraju se C blokovi sklope u jednu rezultujuću matricu. Paralalena verzija u _Go_ jeziku treba da bude implementirana uz pomoć _go_ rutina.
+
+## Eksperimenti jakog i slabog skaliranja
+
+Eskperimenti jakog skaliranja izvršavaju se primenom Amdalovog zakona o maksimalnom ubrzanju, dok se ekperimenti slabog skaliranja izvršavaju primenom Gustafsonovog zakona. Planirana je realizacija eksperimenata za oba programska jezika.
 
 
 
