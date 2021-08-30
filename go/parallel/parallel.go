@@ -8,7 +8,7 @@ import (
 	"github.com/MilicaPoparic/ntp/go/util"
 )
 
-func routine(data [][][]int, chans []chan []int, size int, blockDim int) {
+func RoutineJob(data [][][]int, chans []chan []int, size int, blockDim int) {
 	//treba da saljem na neki kanal ove isparcane rezultate i da sklopim matricu posle
 	for t := 0; t < size; t++ {
 		util.AddAndMultiply(data[0], data[1], data[2], blockDim)
@@ -23,15 +23,15 @@ func routine(data [][][]int, chans []chan []int, size int, blockDim int) {
 		chans[0] <- d1
 		chans[1] <- data[1][0]
 		s1 := <-chans[2]
-		fmt.Println(d1, "DESTINACIJA ", s1, " SOURCE ")
+		// fmt.Println(d1, "DESTINACIJA ", s1, " SOURCE ")
 		for i := 0; i < blockDim; i++ {
 			data[0][i] = append(data[0][i][1:], s1[i])
 
 		}
 		s2 := <-chans[3]
 		data[1] = append(data[1][1:], s2)
-
 	}
+
 }
 
 func Parallel(a [][]int, b [][]int, size int, p int) {
@@ -57,8 +57,7 @@ func Parallel(a [][]int, b [][]int, size int, p int) {
 
 	a, b = util.StepOne(a, b, size)
 	var dest int
-	//treba mi lista sa 4 kanala,
-	//prva dva su dva source, druga dva 2 dest npr
+
 	for i := 0; i < size; i++ {
 		var aBlock, bBlock [][]int
 		var data [][][]int
@@ -76,12 +75,13 @@ func Parallel(a [][]int, b [][]int, size int, p int) {
 			data = append(data, cBlock)
 			leftShiftSource := util.LShiftSource(dest+1, pSqrt)
 			upShiftSource := util.UShiftSource(dest, pSqrt, p)
-			var sendChans []chan []int
-			sendChans = append(sendChans, allChans[dest-1][0])            //dest levi shift
-			sendChans = append(sendChans, allChans[dest-1][1])            // dest up shift
-			sendChans = append(sendChans, allChans[leftShiftSource-1][0]) // src levi shift
-			sendChans = append(sendChans, allChans[upShiftSource-1][1])   // src up shift
-			go routine(data, sendChans, size, blockDim)
+			sendChans := make([]chan []int, p)
+			sendChans[0] = allChans[dest-1][0]            //dest levi shift
+			sendChans[1] = allChans[dest-1][1]            // dest up shift
+			sendChans[2] = allChans[leftShiftSource-1][0] // src levi shift
+			sendChans[3] = allChans[upShiftSource-1][1]   // src up shift
+			// fmt.Println(sendChans)
+			go RoutineJob(data, sendChans, size, blockDim)
 		}
 		step += blockDim
 		if (i+1)%blockDim == 0 {
@@ -90,6 +90,7 @@ func Parallel(a [][]int, b [][]int, size int, p int) {
 			dim2 += blockDim
 		}
 	}
+
 	elapsed := time.Since(startTime)
 	fmt.Println("Process finished in: ", elapsed)
 }
