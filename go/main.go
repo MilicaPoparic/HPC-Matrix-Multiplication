@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/MilicaPoparic/ntp/go/sequential"
+	"github.com/MilicaPoparic/ntp/go/parallel"
 )
 
 func main() {
@@ -18,5 +18,6 @@ func main() {
 		{10, 10, -16, 15},
 		{-13, -3, 9, 3},
 	}
-	sequential.Sequential(a, b, 4)
+	parallel.Parallel(a, b, 4, 4)
+	// sequential.Sequential(a, b, 4)
 }

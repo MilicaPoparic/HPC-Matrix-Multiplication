@@ -8,7 +8,7 @@ import (
 )
 
 func Sequential(a [][]int, b [][]int, size int) {
-	start := time.Now()
+	startTime := time.Now()
 	var c [][]int
 	for i := 0; i < size; i++ {
 		zeros := make([]int, size)
@@ -25,7 +25,7 @@ func Sequential(a [][]int, b [][]int, size int) {
 		c = util.AddAndMultiply(a, b, c, size)
 	}
 
-	elapsed := time.Since(start)
+	elapsed := time.Since(startTime)
 	for _, row := range c {
 		fmt.Println(row)
 	}
