@@ -25,24 +25,11 @@ func StepOne(a [][]int, b [][]int, size int) ([][]int, [][]int) {
 	return a, b
 }
 
-func LShiftDest(a int, b int) int {
-	if a%b == 0 {
-		return a + b
-	}
-	return a
-}
-
 func LShiftSource(a int, b int) int {
 	if (a-1)%b == 0 {
 		return a - b
 	}
 	return a
-}
-func UShiftDest(a int, b int) int {
-	if (a - b) > 0 {
-		return a - b
-	}
-	return a + b*(b-1)
 }
 
 func UShiftSource(a int, b int, c int) int {
