@@ -8,42 +8,12 @@ import (
 	"github.com/MilicaPoparic/ntp/go/util"
 )
 
-type resultP struct {
-	Num    int
-	Matrix [][]int
-}
-
-func RoutineJob(data [][][]int, chans []chan []int, size int, blockDim int, cBlockHolder chan resultP, source int) {
-	for t := 0; t < size; t++ {
-		util.AddAndMultiply(data[0], data[1], data[2], blockDim)
-		if t == size-1 {
-			cBlockHolder <- resultP{source, data[2]}
-			break
-		}
-		d1 := make([]int, blockDim)
-		for i := 0; i < blockDim; i++ {
-			d1[i] = data[0][i][0]
-		}
-
-		chans[0] <- d1
-		chans[1] <- data[1][0]
-		s1 := <-chans[2]
-		s2 := <-chans[3]
-
-		for i := 0; i < blockDim; i++ {
-			data[0][i] = append(data[0][i][1:], s1[i])
-		}
-		data[1] = append(data[1][1:], s2)
-
-	}
-
-}
-
 func Parallel(a [][]int, b [][]int, size int, p int) {
 	pSqrt := int(math.Sqrt(float64(p)))
 	blockDim := size / pSqrt
 	var dim1, step int
 	dim2 := blockDim
+	util.WriteMatrix("parallel.txt", "Matrices A, B: ", a, b)
 
 	startTime := time.Now()
 
@@ -57,7 +27,7 @@ func Parallel(a [][]int, b [][]int, size int, p int) {
 
 	a, b = util.StepOne(a, b, size)
 	var dest int
-	cBlockHolder := make(chan resultP)
+	cBlockHolder := make(chan util.CBlockStruct)
 
 	for i := 0; i < size; i++ {
 		var aBlock, bBlock [][]int
@@ -118,4 +88,32 @@ func Parallel(a [][]int, b [][]int, size int, p int) {
 
 	elapsed := time.Since(startTime)
 	fmt.Println("Process finished in: ", elapsed)
+	util.WriteMatrix("parallel.txt", "Result: ", c, nil)
+}
+
+func RoutineJob(data [][][]int, chans []chan []int, size int, blockDim int, cBlockHolder chan util.CBlockStruct, source int) {
+	for t := 0; t < size; t++ {
+		util.AddAndMultiply(data[0], data[1], data[2], blockDim)
+		if t == size-1 {
+			util.WriteToFile("parallel.txt", source, data[0], data[1], data[2])
+			cBlockHolder <- util.CBlockStruct{source, data[2]}
+			break
+		}
+		d1 := make([]int, blockDim)
+		for i := 0; i < blockDim; i++ {
+			d1[i] = data[0][i][0]
+		}
+
+		chans[0] <- d1
+		chans[1] <- data[1][0]
+		s1 := <-chans[2]
+		s2 := <-chans[3]
+
+		for i := 0; i < blockDim; i++ {
+			data[0][i] = append(data[0][i][1:], s1[i])
+		}
+		data[1] = append(data[1][1:], s2)
+
+	}
+
 }

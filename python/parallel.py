@@ -2,7 +2,7 @@ import timeit, time
 from mpi4py import MPI
 import math
 import numpy as np
-from util import add_and_multiply, step_one
+from util import add_and_multiply, step_one, write_to_file, write
 from main import a, b, n
 
 if __name__ == '__main__':
@@ -21,6 +21,7 @@ if __name__ == '__main__':
 
     if rank == 0:
         dest = 0
+        write("parallel.txt","matrices a, b", a, b)
         start_time = time.time()
         a, b = step_one(a, b, n)
         for i in range(n):
@@ -58,11 +59,12 @@ if __name__ == '__main__':
         end_time = time.time()
         print(np.bmat([rows[i] for i in rows.keys()]))
         print("Process finished in ", end_time - start_time)
+        write("parallel.txt","result: ",np.bmat([rows[i] for i in rows.keys()]), '-------------------------')
     else:
         data = comm.recv(source=0, tag=1)
         for t in range(n):
             add_and_multiply(data[0], data[1], data[2], block_dim)
-
+            write_to_file('parallel.txt',t+rank, data[0], data[1], data[2])
             left_shift_dest = rank-1+p_sqrt if (rank-1) % p_sqrt == 0 else rank - 1
             left_shift_source = rank + 1 - p_sqrt if rank % p_sqrt == 0 else rank + 1
             comm.send([i[0] for i in data[0]], dest=left_shift_dest, tag=left_shift_dest)

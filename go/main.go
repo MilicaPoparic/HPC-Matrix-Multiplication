@@ -1,8 +1,6 @@
 package main
 
-import (
-	"github.com/MilicaPoparic/ntp/go/parallel"
-)
+import "github.com/MilicaPoparic/ntp/go/parallel"
 
 func main() {
 

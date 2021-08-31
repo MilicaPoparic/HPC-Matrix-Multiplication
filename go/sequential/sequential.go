@@ -8,6 +8,7 @@ import (
 )
 
 func Sequential(a [][]int, b [][]int, size int) {
+	util.WriteMatrix("sequential.txt", "Matrices A, B", a, b)
 	startTime := time.Now()
 	var c [][]int
 	for i := 0; i < size; i++ {
@@ -16,13 +17,15 @@ func Sequential(a [][]int, b [][]int, size int) {
 	}
 	a, b = util.StepOne(a, b, size)
 	c = util.AddAndMultiply(a, b, c, size)
-	fmt.Println(c)
+	util.WriteToFile("sequential.txt", 1, a, b, c)
+
 	for i := 1; i < size; i++ {
 		for j := 0; j < size; j++ {
 			a[j] = append(a[j][1:], a[j][:1]...)
 		}
 		b = append(b[1:], b[:1]...)
 		c = util.AddAndMultiply(a, b, c, size)
+		util.WriteToFile("sequential.txt", i+1, a, b, c)
 	}
 
 	elapsed := time.Since(startTime)
