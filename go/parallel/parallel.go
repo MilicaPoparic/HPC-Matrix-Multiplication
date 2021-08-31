@@ -8,11 +8,16 @@ import (
 	"github.com/MilicaPoparic/ntp/go/util"
 )
 
-func RoutineJob(data [][][]int, chans []chan []int, size int, blockDim int) {
-	//treba da saljem na neki kanal ove isparcane rezultate i da sklopim matricu posle
+type resultP struct {
+	Num    int
+	Matrix [][]int
+}
+
+func RoutineJob(data [][][]int, chans []chan []int, size int, blockDim int, cBlockHolder chan resultP, source int) {
 	for t := 0; t < size; t++ {
 		util.AddAndMultiply(data[0], data[1], data[2], blockDim)
 		if t == size-1 {
+			cBlockHolder <- resultP{source, data[2]}
 			break
 		}
 		d1 := make([]int, blockDim)
@@ -23,13 +28,13 @@ func RoutineJob(data [][][]int, chans []chan []int, size int, blockDim int) {
 		chans[0] <- d1
 		chans[1] <- data[1][0]
 		s1 := <-chans[2]
-		// fmt.Println(d1, "DESTINACIJA ", s1, " SOURCE ")
+		s2 := <-chans[3]
+
 		for i := 0; i < blockDim; i++ {
 			data[0][i] = append(data[0][i][1:], s1[i])
-
 		}
-		s2 := <-chans[3]
 		data[1] = append(data[1][1:], s2)
+
 	}
 
 }
@@ -39,11 +44,6 @@ func Parallel(a [][]int, b [][]int, size int, p int) {
 	blockDim := size / pSqrt
 	var dim1, step int
 	dim2 := blockDim
-	var cBlock [][]int
-	for i := 0; i < blockDim; i++ {
-		zeros := make([]int, blockDim)
-		cBlock = append(cBlock, zeros)
-	}
 
 	startTime := time.Now()
 
@@ -57,6 +57,7 @@ func Parallel(a [][]int, b [][]int, size int, p int) {
 
 	a, b = util.StepOne(a, b, size)
 	var dest int
+	cBlockHolder := make(chan resultP)
 
 	for i := 0; i < size; i++ {
 		var aBlock, bBlock [][]int
@@ -70,6 +71,11 @@ func Parallel(a [][]int, b [][]int, size int, p int) {
 			if dest == p+1 {
 				dest = 1
 			}
+			var cBlock [][]int
+			for i := 0; i < blockDim; i++ {
+				zeros := make([]int, blockDim)
+				cBlock = append(cBlock, zeros)
+			}
 			data = append(data, aBlock)
 			data = append(data, bBlock)
 			data = append(data, cBlock)
@@ -80,8 +86,7 @@ func Parallel(a [][]int, b [][]int, size int, p int) {
 			sendChans[1] = allChans[dest-1][1]            // dest up shift
 			sendChans[2] = allChans[leftShiftSource-1][0] // src levi shift
 			sendChans[3] = allChans[upShiftSource-1][1]   // src up shift
-			// fmt.Println(sendChans)
-			go RoutineJob(data, sendChans, size, blockDim)
+			go RoutineJob(data, sendChans, size, blockDim, cBlockHolder, dest-1)
 		}
 		step += blockDim
 		if (i+1)%blockDim == 0 {
@@ -89,6 +94,26 @@ func Parallel(a [][]int, b [][]int, size int, p int) {
 			dim1 += blockDim
 			dim2 += blockDim
 		}
+	}
+
+	c := make([][]int, size)
+	for i := range c {
+		c[i] = make([]int, size)
+		for j := range c[i] {
+			c[i][j] = 0
+		}
+	}
+
+	for t := 0; t < p; t++ {
+		rp := <-cBlockHolder
+		for k := 0; k < blockDim; k++ {
+			i := rp.Num/pSqrt*blockDim + k
+			j := rp.Num % pSqrt * blockDim
+			c[i] = append(append(c[i][:j], rp.Matrix[k]...), c[i][j+blockDim:]...)
+		}
+	}
+	for _, row := range c {
+		fmt.Println(row)
 	}
 
 	elapsed := time.Since(startTime)
