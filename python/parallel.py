@@ -21,27 +21,24 @@ if __name__ == '__main__':
 
     if rank == 0:
         dest = 0
-        write("parallel.txt","matrices a, b", a, b)
+        # write("parallel.txt","matrices a, b", a, b)
         start_time = time.time()
         a, b = step_one(a, b, n)
-        for i in range(n):
-            a_block, b_block, data = [], [], []
-            for j in range(dim1, dim2):
-                a_block.append(a[j][step:step + block_dim])
-                b_block.append(b[j][step:step + block_dim])
-            if len(a_block[block_dim-1]) == block_dim:
-                print(a_block, " a BLOCK")
-                c_block = [[0 for i in range(block_dim)] for j in range(block_dim)]
-                data = [a_block, b_block, c_block]
-                dest += 1
-                if dest == p:
-                    dest = 1
-                comm.send(data, dest=dest, tag=1)
-            step = step + block_dim
-            if (i + 1) % block_dim == 0:
-                step = 0
-                dim1 += block_dim
-                dim2 += block_dim
+        a_block, b_block = [], []
+        dest = 0
+        for i in range(0, n , block_dim):
+            mtx_a = a[i:i+block_dim]
+            mtx_b = b[i:i + block_dim]
+            for j in range(0, n, block_dim):
+                for k in range(len(mtx_a)):
+                    a_block.append(mtx_a[k][j:j+block_dim])
+                    b_block.append(mtx_b[k][j:j + block_dim])
+                    if (len(a_block) == block_dim):
+                        c_block = [[0 for i in range(block_dim)] for j in range(block_dim)]
+                        data = [a_block, b_block, c_block]
+                        dest += 1
+                        comm.send(data, dest=dest, tag=1)
+                        a_block, b_block = [], []
 
         c_blocks = []
         d = 0
@@ -60,12 +57,12 @@ if __name__ == '__main__':
         end_time = time.time()
         print(np.bmat([rows[i] for i in rows.keys()]))
         print("Process finished in ", end_time - start_time)
-        write("parallel.txt","result: ",np.bmat([rows[i] for i in rows.keys()]), '-------------------------')
+        # write("parallel.txt","result: ",np.bmat([rows[i] for i in rows.keys()]), '-------------------------')
     else:
         data = comm.recv(source=0, tag=1)
         for t in range(n):
             add_and_multiply(data[0], data[1], data[2], block_dim)
-            write_to_file('parallel.txt',t+rank, data[0], data[1], data[2])
+            # write_to_file('parallel.txt',t+rank, data[0], data[1], data[2])
             left_shift_dest = rank-1+p_sqrt if (rank-1) % p_sqrt == 0 else rank - 1
             left_shift_source = rank + 1 - p_sqrt if rank % p_sqrt == 0 else rank + 1
             comm.send([i[0] for i in data[0]], dest=left_shift_dest, tag=left_shift_dest)
@@ -80,4 +77,3 @@ if __name__ == '__main__':
             data[1] = data[1][1:] + [new_row]
 
         req = comm.send(data[2], dest=0, tag=rank)
-

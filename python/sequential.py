@@ -9,7 +9,7 @@ from util import add_and_multiply, step_one, write_to_file, write
 blocks = []
 
 
-def multiply_and_shift(data):
+def save_blocks(data):
     blocks.append([data[0], data[1], data[2]])
     return blocks
 
@@ -28,25 +28,20 @@ def sequential(a, b, n, p):
     write("sequential.txt", "matrices a, b", a, b)
     start_time = time.time()
     a, b = step_one(a, b, n)
-    for i in range(n):
-        a_block, b_block, data = [], [], []
-        for j in range(dim1, dim2):
-            a_block.append(a[j][step:step + block_dim])
-            b_block.append(b[j][step:step + block_dim])
-        if len(a_block[block_dim - 1]) == block_dim:
-            # print(a_block, "A BLOKCINA")
-            c_block = [[0 for i in range(block_dim)] for j in range(block_dim)]
-            data = [a_block, b_block, c_block]
-            dest += 1
-            if dest == p:
-                dest = 1
-            blocks = multiply_and_shift(data)
-        step = step + block_dim
-        if (i + 1) % block_dim == 0:
-            step = 0
-            dim1 += block_dim
-            dim2 += block_dim
-
+    a_block, b_block = [], []
+    dest = 0
+    for i in range(0, n, block_dim):
+        mtx_a = a[i:i + block_dim]
+        mtx_b = b[i:i + block_dim]
+        for j in range(0, n, block_dim):
+            for k in range(len(mtx_a)):
+                a_block.append(mtx_a[k][j:j + block_dim])
+                b_block.append(mtx_b[k][j:j + block_dim])
+                if (len(a_block) == block_dim):
+                    c_block = [[0 for i in range(block_dim)] for j in range(block_dim)]
+                    data = [a_block, b_block, c_block]
+                    blocks = save_blocks(data)
+                    a_block, b_block = [], []
 
     c_blocks = [[[0 for k in range(block_dim)] for j in range(block_dim)] for i in range(p-1)]
 
