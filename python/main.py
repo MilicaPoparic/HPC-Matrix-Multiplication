@@ -1,6 +1,7 @@
 import timeit, time, os
 from mpi4py import MPI
 from sequential import sequential
+# from sequential1 import sequential
 import numpy
 import random
 
@@ -28,7 +29,6 @@ n = 4
 # b = [[random.randint(-(n ** 2), n ** 2) for _ in range(n)] for _ in range(n)]
 
 if __name__ == '__main__':
-
-    #sequential(a, b, n)
-
-    os.system("mpiexec -n {0} python -m mpi4py parallel.py".format(5))
+    p = 5
+    sequential(a, b, n, p)
+    # os.system("mpiexec -n {0} python -m mpi4py parallel.py".format(5))

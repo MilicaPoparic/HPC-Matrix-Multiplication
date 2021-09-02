@@ -30,6 +30,7 @@ if __name__ == '__main__':
                 a_block.append(a[j][step:step + block_dim])
                 b_block.append(b[j][step:step + block_dim])
             if len(a_block[block_dim-1]) == block_dim:
+                print(a_block, " a BLOCK")
                 c_block = [[0 for i in range(block_dim)] for j in range(block_dim)]
                 data = [a_block, b_block, c_block]
                 dest += 1
