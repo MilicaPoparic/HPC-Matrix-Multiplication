@@ -16,6 +16,15 @@ func AddAndMultiply(a [][]int, b [][]int, c [][]int, size int) [][]int {
 	return c
 }
 
+func AddAndMultiply1(a [][]int, b [][]int, c [][]int, size int) [][]int {
+	for i := 0; i < size; i++ {
+		for j := 0; j < size; j++ {
+			c[i][j] = a[i][j] * b[i][j]
+		}
+	}
+	return c
+}
+
 func StepOne(a [][]int, b [][]int, size int) ([][]int, [][]int) {
 	for i := 0; i < size; i++ {
 		a[i] = append(a[i][i:], a[i][:i]...)
@@ -31,7 +40,19 @@ func StepOne(a [][]int, b [][]int, size int) ([][]int, [][]int) {
 	}
 	return a, b
 }
+func UShiftDest(a int, b int) int {
+	if (a - b) > 0 {
+		return a - b
+	}
+	return a + b*(b-1)
+}
 
+func LShiftDest(a int, b int) int {
+	if (a-1)%b == 0 {
+		return a - 1 + b
+	}
+	return a - 1
+}
 func LShiftSource(a int, b int) int {
 	if (a-1)%b == 0 {
 		return a - b

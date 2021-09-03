@@ -16,10 +16,12 @@ def sequential(a, b, size):
             a[i] = a[i][1:] + a[i][:1]
         b = b[1:] + b[:1]
         c = add_and_multiply(a, b, c, size)
+
         write_to_file('sequential.txt', j + 1, a, b, c)
     end_time = time.time()
     time1 = end_time - start_time
 
+    print("_______________________")
     for row in c:
         print(row)
 
