@@ -19,9 +19,9 @@ func saveBlocks(blocks [][][][]int, data [][][]int, index int, blockDim int) [][
 }
 
 func Sequential(a [][]int, b [][]int, n int, p int) {
-	pSqrt := int(math.Sqrt(float64(p - 1)))
+	pSqrt := int(math.Sqrt(float64(p)))
 	blockDim := n / pSqrt
-	blocks := make([][][][]int, p-1)
+	blocks := make([][][][]int, p)
 	for i := range blocks {
 		blocks[i] = make([][][]int, 3)
 		for j := range blocks[i] {
@@ -32,8 +32,8 @@ func Sequential(a [][]int, b [][]int, n int, p int) {
 		}
 	}
 
-	cBlocks := make([][][]int, p-1)
-	for i := range blocks {
+	cBlocks := make([][][]int, p)
+	for i := range cBlocks {
 		cBlocks[i] = make([][]int, blockDim)
 		for j := range cBlocks[i] {
 			cBlocks[i][j] = make([]int, blockDim)
@@ -91,7 +91,7 @@ func Sequential(a [][]int, b [][]int, n int, p int) {
 		sftU := deepcopy.MustAnything(x)
 		blockPerShiftingU := sftU.(Foo).B
 
-		for r := 0; r < (p - 1); r++ {
+		for r := 0; r < p; r++ {
 			process := r + 1
 			util.AddAndMultiply1(x.B[r][0], x.B[r][1], x.B[r][2], blockDim)
 			// write_to_file('sequential.txt', m + process, x.B[i][0], x.B[i][1], x.B[i][2])
@@ -126,7 +126,7 @@ func Sequential(a [][]int, b [][]int, n int, p int) {
 		}
 	}
 
-	for t := 0; t < p-1; t++ {
+	for t := 0; t < p; t++ {
 		for k := 0; k < blockDim; k++ {
 			i := t/pSqrt*blockDim + k
 			j := t % pSqrt * blockDim

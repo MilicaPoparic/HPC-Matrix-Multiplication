@@ -1,8 +1,6 @@
 package main
 
-import (
-	"github.com/MilicaPoparic/ntp/go/sequential"
-)
+import "github.com/MilicaPoparic/ntp/go/parallel"
 
 func main() {
 	a := [][]int{
@@ -33,7 +31,9 @@ func main() {
 	// 	{10, 10, -16, 15},
 	// 	{-13, -3, 9, 3},
 	// }
-	//parallel.Parallel(a, b, 4, 4)
-	sequential.Sequential(a, b, 6, 10)
+
+	//paralel se zove sa p normalno
+	parallel.Parallel(a, b, 6, 9)
+	// sequential.Sequential1(a, b, 4)
 
 }

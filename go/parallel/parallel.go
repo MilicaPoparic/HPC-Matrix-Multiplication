@@ -11,8 +11,6 @@ import (
 func Parallel(a [][]int, b [][]int, size int, p int) {
 	pSqrt := int(math.Sqrt(float64(p)))
 	blockDim := size / pSqrt
-	var dim1, step int
-	dim2 := blockDim
 	util.WriteMatrix("parallel.txt", "Matrices A, B: ", a, b)
 
 	startTime := time.Now()
@@ -21,51 +19,55 @@ func Parallel(a [][]int, b [][]int, size int, p int) {
 	for i := range allChans {
 		allChans[i] = make([]chan []int, 2) // za red i kolonu
 		for j := range allChans[i] {
-			allChans[i][j] = make(chan []int, 1)
+			allChans[i][j] = make(chan []int, blockDim) //svaki red kolona ima onoliko koliko je blockDim
 		}
 	}
-
+	//ideja svako var zameniti sa make i svaki append zameniti sa konkretnom dodelom da se gadja u zenicu
 	a, b = util.StepOne(a, b, size)
-	var dest int
+	dest := 0
 	cBlockHolder := make(chan util.CBlockStruct)
 
-	for i := 0; i < size; i++ {
-		var aBlock, bBlock [][]int
-		var data [][][]int
-		for j := dim1; j < dim2; j++ {
-			aBlock = append(aBlock, a[j][step:step+blockDim])
-			bBlock = append(bBlock, b[j][step:step+blockDim])
-		}
-		if len(aBlock[blockDim-1]) == blockDim {
-			dest += 1
-			if dest == p+1 {
-				dest = 1
+	aBlock := make([][]int, blockDim)
+	bBlock := make([][]int, blockDim)
+
+	for i := 0; i < size; i += blockDim {
+		mtxA := a[i : i+blockDim]
+		mtxB := b[i : i+blockDim]
+		for j := 0; j < size; j += blockDim {
+			for k := range mtxA {
+				aBlock[k] = mtxA[k][j : j+blockDim]
+				bBlock[k] = mtxB[k][j : j+blockDim]
+				if len(aBlock[blockDim-1]) == blockDim {
+					// pravim c blok sa svim nulama
+					cBlock := make([][]int, blockDim)
+					for i := range cBlock {
+						cBlock[i] = make([]int, blockDim)
+					}
+
+					data := make([][][]int, 3)
+					//ako ne bude radilo iteriracu! a pre toga def data[i]
+					data[0] = aBlock
+					data[1] = bBlock
+					data[2] = cBlock
+
+					dest += 1
+
+					aBlock = make([][]int, blockDim)
+					bBlock = make([][]int, blockDim)
+
+					leftShiftSource := util.LShiftSource(dest+1, pSqrt)
+					upShiftSource := util.UShiftSource(dest, pSqrt, p)
+
+					sendChans := make([]chan []int, 4)
+					sendChans[0] = allChans[dest-1][0]            //dest levi shift
+					sendChans[1] = allChans[dest-1][1]            // dest up shift
+					sendChans[2] = allChans[leftShiftSource-1][0] // src levi shift
+					sendChans[3] = allChans[upShiftSource-1][1]   // src up shift
+					go RoutineJob(data, sendChans, size, blockDim, cBlockHolder, dest-1)
+				}
 			}
-			var cBlock [][]int
-			for i := 0; i < blockDim; i++ {
-				zeros := make([]int, blockDim)
-				cBlock = append(cBlock, zeros)
-			}
-			data = append(data, aBlock)
-			data = append(data, bBlock)
-			data = append(data, cBlock)
-			leftShiftSource := util.LShiftSource(dest+1, pSqrt)
-			upShiftSource := util.UShiftSource(dest, pSqrt, p)
-			sendChans := make([]chan []int, p)
-			sendChans[0] = allChans[dest-1][0]            //dest levi shift
-			sendChans[1] = allChans[dest-1][1]            // dest up shift
-			sendChans[2] = allChans[leftShiftSource-1][0] // src levi shift
-			sendChans[3] = allChans[upShiftSource-1][1]   // src up shift
-			go RoutineJob(data, sendChans, size, blockDim, cBlockHolder, dest-1)
-		}
-		step += blockDim
-		if (i+1)%blockDim == 0 {
-			step = 0
-			dim1 += blockDim
-			dim2 += blockDim
 		}
 	}
-
 	c := make([][]int, size)
 	for i := range c {
 		c[i] = make([]int, size)
@@ -85,7 +87,7 @@ func Parallel(a [][]int, b [][]int, size int, p int) {
 	for _, row := range c {
 		fmt.Println(row)
 	}
-
+	time.Sleep(3)
 	elapsed := time.Since(startTime)
 	fmt.Println("Process finished in: ", elapsed)
 	util.WriteMatrix("parallel.txt", "Result: ", c, nil)
@@ -113,7 +115,6 @@ func RoutineJob(data [][][]int, chans []chan []int, size int, blockDim int, cBlo
 			data[0][i] = append(data[0][i][1:], s1[i])
 		}
 		data[1] = append(data[1][1:], s2)
-
 	}
 
 }

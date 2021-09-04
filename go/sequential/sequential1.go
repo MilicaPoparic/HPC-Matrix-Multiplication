@@ -19,6 +19,10 @@ func Sequential1(a [][]int, b [][]int, size int) {
 	a, b = util.StepOne(a, b, size)
 
 	c = util.AddAndMultiply(a, b, c, size)
+	fmt.Println("C1  ")
+	for r := range c {
+		fmt.Println(c[r])
+	}
 	util.WriteToFile("sequential.txt", 1, a, b, c)
 
 	for i := 1; i < size; i++ {
@@ -27,10 +31,15 @@ func Sequential1(a [][]int, b [][]int, size int) {
 		}
 		b = append(b[1:], b[:1]...)
 		c = util.AddAndMultiply(a, b, c, size)
+		fmt.Println("C", i+1)
+		for r := range c {
+			fmt.Println(c[r])
+		}
 		util.WriteToFile("sequential.txt", i+1, a, b, c)
 	}
 
 	elapsed := time.Since(startTime)
+	fmt.Println("RESULT: ")
 	for _, row := range c {
 		fmt.Println(row)
 	}
