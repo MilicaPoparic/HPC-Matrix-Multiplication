@@ -1,7 +1,7 @@
 import timeit, time, os
 from mpi4py import MPI
 from sequential import sequential
-from scalling import calculate, calc_amdal, plot_graph
+from scalling import calculate, calc_amdal, plot_graph, calc_gustaf
 import random
 
 # a = [[15, -11, -12, 12], [-15, -2, 15, -15], [12, 14, -12, -6], [-1, -8, 16, -13]]
@@ -40,20 +40,25 @@ import random
 #      [4, 28, -40, -50, -34, -11, 37, -7],
 #      [57, -40, -55, 23, -45, 27, 9, -36],
 #      [54, -1, 16, -11, -12, 4, 25, -30]]
-n = 200
+n = 500
 a = [[random.randint(-(100), 100) for _ in range(n)] for _ in range(n)]
 b = [[random.randint(-(100), 100) for _ in range(n)] for _ in range(n)]
 
 if __name__ == '__main__':
     # p = 2
     # sequential(a, b, n, p)
-    # p = 17
+    # p = 26
     # os.system("mpiexec -n {0} python -m mpi4py parallel.py".format(p))
+    # for i in range(30):
+    #     sequential(a, b, n, p)
+        # os.system("mpiexec -n {0} python -m mpi4py parallel.py".format(p))
+
+
     speedUp = []
     cpu = [4,16,25]
-    amdal = calc_amdal(cpu)
+    gustaf = calc_gustaf(cpu)
     speedUp.append(calculate("resources/parallel4.txt", "resources/sequential_strong.txt"))
-    speedUp.append(calculate("resources/parallel16.txt", "resources/sequential_strong.txt"))
-    speedUp.append(calculate("resources/parallel25.txt", "resources/sequential_strong.txt"))
+    speedUp.append(calculate("resources/parallel_weak16.txt", "resources/sequential_weak16.txt"))
+    speedUp.append(calculate("resources/parallel_weak25.txt", "resources/sequential_weak25.txt"))
     print(speedUp)
-    plot_graph(speedUp, amdal, cpu, "Jako")
+    plot_graph(speedUp, gustaf, cpu, "Slabo")

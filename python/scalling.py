@@ -7,6 +7,12 @@ def calc_amdal(cpu):
         amdal.append(1 / (0.01 + 0.99 / c))
     return amdal
 
+def calc_gustaf(cpu):
+    gustaf = []
+    for c in cpu:
+        gustaf.append(0.01 + 0.99 * c)
+    return gustaf
+
 def plot_graph(speedUp, law, cpu, type):
     plt.figure(0)
     plt.plot(cpu, speedUp, color='blue', marker='o')
