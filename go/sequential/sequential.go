@@ -2,7 +2,9 @@ package sequential
 
 import (
 	"fmt"
+	"log"
 	"math"
+	"os"
 	"time"
 
 	"github.com/MilicaPoparic/ntp/go/util"
@@ -81,6 +83,7 @@ func Sequential(a [][]int, b [][]int, n int, p int) {
 		B: blocks,
 	}
 
+	// endSeq := time.Since(startTime)
 	for m := 0; m < n; m++ {
 		bs := deepcopy.MustAnything(x)
 		blocksShifted := bs.(Foo).B
@@ -94,7 +97,7 @@ func Sequential(a [][]int, b [][]int, n int, p int) {
 		for r := 0; r < p; r++ {
 			process := r + 1
 			util.AddAndMultiply1(x.B[r][0], x.B[r][1], x.B[r][2], blockDim)
-			// write_to_file('sequential.txt', m + process, x.B[i][0], x.B[i][1], x.B[i][2])
+			// util.WriteToFile("sequential.txt", m+process, x.B[r][0], x.B[r][1], x.B[r][2])
 			for s := 0; s < blockDim; s++ {
 				for k := 0; k < blockDim; k++ {
 					cBlocks[r][s][k] += x.B[r][2][s][k]
@@ -138,4 +141,15 @@ func Sequential(a [][]int, b [][]int, n int, p int) {
 		fmt.Println(row)
 	}
 	fmt.Print("Process finished in ", elapsed)
+	f, err := os.OpenFile("resources/sequentialWeek25.txt",
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Println(err)
+	}
+	f.WriteString(fmt.Sprint(elapsed.Seconds()) + "\n")
+	defer f.Close()
+
+	// paralelTime := elapsed.Seconds() - endSeq.Seconds()
+	// fmt.Println("sequential time", endSeq.Seconds())
+	// fmt.Println("parallel time", paralelTime/elapsed.Seconds())
 }

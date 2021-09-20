@@ -2,7 +2,9 @@ package parallel
 
 import (
 	"fmt"
+	"log"
 	"math"
+	"os"
 	"time"
 
 	"github.com/MilicaPoparic/ntp/go/util"
@@ -11,18 +13,18 @@ import (
 func Parallel(a [][]int, b [][]int, size int, p int) {
 	pSqrt := int(math.Sqrt(float64(p)))
 	blockDim := size / pSqrt
-	util.WriteMatrix("parallel.txt", "Matrices A, B: ", a, b)
+	// util.WriteMatrix("parallel.txt", "Matrices A, B: ", a, b)
 
 	startTime := time.Now()
 
 	allChans := make([][]chan []int, p)
 	for i := range allChans {
-		allChans[i] = make([]chan []int, 2) // za red i kolonu
+		allChans[i] = make([]chan []int, 2) // row, col
 		for j := range allChans[i] {
-			allChans[i][j] = make(chan []int, blockDim) //svaki red kolona ima onoliko koliko je blockDim
+			allChans[i][j] = make(chan []int, blockDim) //row, col dim blockDim
 		}
 	}
-	//ideja svako var zameniti sa make i svaki append zameniti sa konkretnom dodelom da se gadja u zenicu
+
 	a, b = util.StepOne(a, b, size)
 	dest := 0
 	cBlockHolder := make(chan util.CBlockStruct)
@@ -38,14 +40,13 @@ func Parallel(a [][]int, b [][]int, size int, p int) {
 				aBlock[k] = mtxA[k][j : j+blockDim]
 				bBlock[k] = mtxB[k][j : j+blockDim]
 				if len(aBlock[blockDim-1]) == blockDim {
-					// pravim c blok sa svim nulama
+					// intialize c blok with all zeros
 					cBlock := make([][]int, blockDim)
 					for i := range cBlock {
 						cBlock[i] = make([]int, blockDim)
 					}
 
 					data := make([][][]int, 3)
-					//ako ne bude radilo iteriracu! a pre toga def data[i]
 					data[0] = aBlock
 					data[1] = bBlock
 					data[2] = cBlock
@@ -59,9 +60,9 @@ func Parallel(a [][]int, b [][]int, size int, p int) {
 					upShiftSource := util.UShiftSource(dest, pSqrt, p)
 
 					sendChans := make([]chan []int, 4)
-					sendChans[0] = allChans[dest-1][0]            //dest levi shift
+					sendChans[0] = allChans[dest-1][0]            //dest left shift
 					sendChans[1] = allChans[dest-1][1]            // dest up shift
-					sendChans[2] = allChans[leftShiftSource-1][0] // src levi shift
+					sendChans[2] = allChans[leftShiftSource-1][0] // src left shift
 					sendChans[3] = allChans[upShiftSource-1][1]   // src up shift
 					go RoutineJob(data, sendChans, size, blockDim, cBlockHolder, dest-1)
 				}
@@ -87,17 +88,23 @@ func Parallel(a [][]int, b [][]int, size int, p int) {
 	for _, row := range c {
 		fmt.Println(row)
 	}
-	time.Sleep(3)
+
 	elapsed := time.Since(startTime)
 	fmt.Println("Process finished in: ", elapsed)
-	util.WriteMatrix("parallel.txt", "Result: ", c, nil)
+	f, err := os.OpenFile("resources/parallelWeak25.txt",
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Println(err)
+	}
+	f.WriteString(fmt.Sprint(elapsed.Seconds()) + "\n")
+	defer f.Close()
 }
 
 func RoutineJob(data [][][]int, chans []chan []int, size int, blockDim int, cBlockHolder chan util.CBlockStruct, source int) {
 	for t := 0; t < size; t++ {
 		util.AddAndMultiply(data[0], data[1], data[2], blockDim)
 		if t == size-1 {
-			util.WriteToFile("parallel.txt", source, data[0], data[1], data[2])
+			// util.WriteToFile("parallel.txt", source, data[0], data[1], data[2])
 			cBlockHolder <- util.CBlockStruct{source, data[2]}
 			break
 		}
