@@ -15,6 +15,7 @@ def save_blocks(data):
 
 
 def sequential(a, b, n, p):
+    # f = open("resources/sequential_weak25.txt", "a")
     step, dim1, s1 = 0, 0, 0
     p_sqrt = int(math.sqrt(p - 1))
     range_per_row = int((p - 1) / p_sqrt)
@@ -75,3 +76,5 @@ def sequential(a, b, n, p):
     print(np.bmat([rows[i] for i in rows.keys()]))
     print("Process finished in ", end_time - start_time)
     # write("sequential.txt", "result: ", np.bmat([rows[i] for i in rows.keys()]), '-------------------------')
+    # f.write(str(end_time - start_time) + "\n")
+    # f.close()

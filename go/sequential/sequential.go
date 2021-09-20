@@ -2,9 +2,7 @@ package sequential
 
 import (
 	"fmt"
-	"log"
 	"math"
-	"os"
 	"time"
 
 	"github.com/MilicaPoparic/ntp/go/util"
@@ -141,13 +139,13 @@ func Sequential(a [][]int, b [][]int, n int, p int) {
 		fmt.Println(row)
 	}
 	fmt.Print("Process finished in ", elapsed)
-	f, err := os.OpenFile("resources/sequentialWeek25.txt",
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Println(err)
-	}
-	f.WriteString(fmt.Sprint(elapsed.Seconds()) + "\n")
-	defer f.Close()
+	// f, err := os.OpenFile("resources/sequentialWeek25.txt",
+	// 	os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	// if err != nil {
+	// 	log.Println(err)
+	// }
+	// f.WriteString(fmt.Sprint(elapsed.Seconds()) + "\n")
+	// defer f.Close()
 
 	// paralelTime := elapsed.Seconds() - endSeq.Seconds()
 	// fmt.Println("sequential time", endSeq.Seconds())

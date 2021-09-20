@@ -6,6 +6,7 @@ from util import add_and_multiply, step_one, write_to_file, write
 from main import a, b, n
 
 if __name__ == '__main__':
+    # f = open("resources/parallel_weak25.txt", "a")
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     p = comm.Get_size()
@@ -58,6 +59,8 @@ if __name__ == '__main__':
         print(np.bmat([rows[i] for i in rows.keys()]))
         print("Process finished in ", end_time - start_time)
         # write("parallel.txt","result: ",np.bmat([rows[i] for i in rows.keys()]), '-------------------------')
+        # f.write(str(end_time - start_time) + "\n")
+        # f.close()
     else:
         data = comm.recv(source=0, tag=1)
         for t in range(n):

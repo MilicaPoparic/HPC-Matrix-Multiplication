@@ -2,9 +2,7 @@ package parallel
 
 import (
 	"fmt"
-	"log"
 	"math"
-	"os"
 	"time"
 
 	"github.com/MilicaPoparic/ntp/go/util"
@@ -91,13 +89,13 @@ func Parallel(a [][]int, b [][]int, size int, p int) {
 
 	elapsed := time.Since(startTime)
 	fmt.Println("Process finished in: ", elapsed)
-	f, err := os.OpenFile("resources/parallelWeak25.txt",
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Println(err)
-	}
-	f.WriteString(fmt.Sprint(elapsed.Seconds()) + "\n")
-	defer f.Close()
+	// f, err := os.OpenFile("resources/parallelWeak25.txt",
+	// 	os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	// if err != nil {
+	// 	log.Println(err)
+	// }
+	// f.WriteString(fmt.Sprint(elapsed.Seconds()) + "\n")
+	// defer f.Close()
 }
 
 func RoutineJob(data [][][]int, chans []chan []int, size int, blockDim int, cBlockHolder chan util.CBlockStruct, source int) {
